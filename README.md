@@ -1,4 +1,4 @@
-ASCII Modbus Data Fetcher console verison ip modification
+Modbus & TCP Data Fetcher extend modification
 ==========
 Copyright (c) 2020 Yaroslav Shkliar
 Copyright (c) 2020 ILIT.RU, Research IT Laboratory 
@@ -18,11 +18,11 @@ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
 details.
 
 
-What is Modbus Data Fetcher?
+Modbus & TCP Data Fetcher?
 ----------------
 
-Modbus Data Fetcher is a free Qt-based implementation of a ModBus master application oriented on ecological acquisition equipments.
-A graphical user interface allows easy communication with ModBus ASCII mode (or other) with slaves over standard serial line interface or emulationed. This program tested with MOXA Nport interaction. Data Fetcher allow to collect measurements to postgresql DB and to edit it in interactive mode.
+Modbus & TCP Data Fetcher is a free Qt-based implementation of application wich oriented on ecological acquisition equipments.
+This program tested with MOXA 5150, 5450 series devices Nport interaction in RealCom and TCP Server modes. Data Fetcher allow to collect measurements to postgresql DB and to edit it in interactive mode.
 
 
 Requirements
@@ -38,8 +38,6 @@ Building
 --------
 
 See INSTALL for information on how to build Modbus Data Fetcher.
-
-
 
 Contact
 -------
