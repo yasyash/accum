@@ -3,7 +3,7 @@ QT += core sql network concurrent serialport
 QT -= gui
 
 TEMPLATE = app
-VERSION = 0.1.8
+VERSION = 1.8
 
 TARGET = accumtrak
 
@@ -94,6 +94,7 @@ DEFINES += DUSTTCP_H
 #DEFINES += QTNETSNMP_LIBRARY
 #DEFINES += DUSTUDP_H
 
+DEFINES += APP_VERSION=$$VERSION
 
 
 LIBS += -lnetsnmp -ltelnet -lnetsnmpmibs  #-lqt-net-snmp

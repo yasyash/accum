@@ -59,6 +59,13 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     if (_verbose > 0)
     {
         verbose = true;
+        qDebug () << "Fetcher version " <<  APP_VERSION;
+
+    }
+    int _ver = cmdline_args.indexOf("-version");
+    if (_ver > 0)
+    {
+        qDebug () << "Fetcher version " <<  APP_VERSION;
     }
 
     // UPS init
@@ -126,7 +133,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     QString db = cmdline_args.value(cmdline_args.indexOf("-db") +1);
     if (db == "")
     {
-       // releaseModbus();
+        // releaseModbus();
 
         qDebug ( "Fatal error: wrong data of the database parameter\n\r");
         exit(-1);
@@ -136,7 +143,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     QString user = cmdline_args.value(cmdline_args.indexOf("-user") +1);
     if (user == "")
     {
-       // releaseModbus();
+        // releaseModbus();
 
         qDebug ( "Fatal error: wrong data of the user parameter\n\r");
         exit(-1);
@@ -146,7 +153,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     QString pw = cmdline_args.value(cmdline_args.indexOf("-pwd") +1);
     if (pw == "")
     {
-       // releaseModbus();
+        // releaseModbus();
 
         qDebug ( "Fatal error: wrong data of the password parameter\n\r");
         exit(-1);
@@ -180,7 +187,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     t->start( 500 );
 
     m_pollTimer = new QTimer( this );
-   // connect( m_pollTimer, SIGNAL(timeout()), this, SLOT(sendModbusRequest()));
+    // connect( m_pollTimer, SIGNAL(timeout()), this, SLOT(sendModbusRequest()));
     connect( m_pollTimer, SIGNAL(timeout()), this, SLOT(readSocketStatus()));
 
     //  m_statusTimer = new QTimer( this );
@@ -282,7 +289,7 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             //m_dust->sendData( "RDMN");
             /* while (!m_dust->is_read);*/
             m_dust->is_read = false;
-            //m_dust->sendData( "MSTART");
+            m_dust->sendData( "MSTART");
             /*while (!m_dust->is_read);*/
             //m_dust->is_read = false;
 
@@ -359,7 +366,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             m_serinus = new Serinus(this, &m_serinus_ip, &m_serinus_port);
             connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
-
+            if (verbose)
+                m_serinus->verbose = true;
         }
     }
 
@@ -380,7 +388,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             m_serinus55 = new Serinus(this, &m_serinus_ip55, &m_serinus_port55, int(55));
             connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
-
+            if (verbose)
+                m_serinus55->verbose = true;
         }
     }
 
@@ -401,7 +410,8 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
             m_serinus50 = new Serinus(this, &m_serinus_ip50, &m_serinus_port50, int(50));
             connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
             //QObject::connect(m_serinus, SIGNAL(dataIsReady(const QString)), this, SLOT(test())); //fill several data to one sensor's base
-
+            if (verbose)
+                m_serinus50->verbose = true;
         }
     }
     // ACA-Liga init
@@ -481,6 +491,11 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
     m_range->insert("Напряжение мин.", 1);
     m_range->insert("Напряжение макс.", 1);
 
+    m_range->insert("PM", 1000);
+    m_range->insert("PM1", 1000);
+    m_range->insert("PM2.5", 1000);
+    m_range->insert("PM4", 1000);
+    m_range->insert("PM10", 1000);
 
 
     //UPS data init
@@ -492,25 +507,29 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         //m_measure->insert("Напряжение макс.", 1);
     }
 
-    ms_range->insert("PM", 1000000);
-    ms_range->insert("PM1", 1000000);
-    ms_range->insert("PM2.5", 1000000);
-    ms_range->insert("PM4", 1000000);
-    ms_range->insert("PM10", 1000000);
+
 
     //Grimm listening confiramtion
-    if (m_grimm)
+    if (m_grimm){
+        ms_range->insert("PM", 1000000);
+        ms_range->insert("PM1", 1000000);
+        ms_range->insert("PM2.5", 1000000);
+        ms_range->insert("PM4", 1000000);
+        ms_range->insert("PM10", 1000000);
         m_grimm->send_go();
+    }
+
 }
 
 
 processor::~processor()
 { if (m_dust)
-    m_dust->sendData( "MSTOP");
-
-    modbus_close( m_serialModbus );
-    modbus_free( m_serialModbus );
-    m_serialModbus = NULL;
+        m_dust->sendData( "MSTOP");
+    if (m_serialModbus){
+        modbus_close( m_serialModbus );
+        modbus_free( m_serialModbus );
+        m_serialModbus = NULL;
+    }
 
 }
 
@@ -1140,77 +1159,77 @@ void processor::renovateSlaveID( void )
         }
     }
 
-if (m_dust) {
-    if (!m_dust->connected){
-        if ( (m_dust_ip != "") && (m_dust_port >0)){
-            m_dust->~DustTcpSock();
-            m_dust = new DustTcpSock(this, &m_dust_ip, &m_dust_port);
-            m_dust->sendData( "MSTART"); //restart Dust measure equipment
+    if (m_dust) {
+        //if (!m_dust->connected){
+            if ( (m_dust_ip != "") && (m_dust_port >0)){
+                m_dust->~DustTcpSock();
+                m_dust = new DustTcpSock(this, &m_dust_ip, &m_dust_port);
+                m_dust->sendData( "MSTART"); //restart Dust measure equipment
+           // }
         }
     }
-}
-if (m_meteo) {
+    if (m_meteo) {
 
-    if (!m_meteo->connected){
-        if ( (m_meteo_ip != "") && (m_meteo_port >0)){
+        if (!m_meteo->connected){
+            if ( (m_meteo_ip != "") && (m_meteo_port >0)){
 
-            m_meteo->~MeteoTcpSock();
-            m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port);
+                m_meteo->~MeteoTcpSock();
+                m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port);
+            }
         }
     }
-}
 
-if (m_ups){
-    if ( (m_ups_ip != "") && (m_ups_port >0)){
+    if (m_ups){
+        if ( (m_ups_ip != "") && (m_ups_port >0)){
 
-        m_ups->err_count = 0;
-    }
-}
-
-if (m_serinus){
-    if (!m_serinus->connected)
-    {
-        if ( (m_serinus_ip != "") && (m_serinus_port >0)){
-
-            m_serinus->~Serinus();
-            m_serinus = new Serinus(this, &m_serinus_ip, &m_serinus_port);
-            connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
-
+            m_ups->err_count = 0;
         }
     }
-}
 
+    if (m_serinus){
+        if (!m_serinus->connected)
+        {
+            if ( (m_serinus_ip != "") && (m_serinus_port >0)){
 
-if (m_serinus50){
-    if (!m_serinus50->connected)
-    {
-        if ( (m_serinus_ip50 != "") && (m_serinus_port50 >0)){
+                m_serinus->~Serinus();
+                m_serinus = new Serinus(this, &m_serinus_ip, &m_serinus_port);
+                connect(m_serinus, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
 
-            m_serinus50->~Serinus();
-            m_serinus50 = new Serinus(this, &m_serinus_ip, &m_serinus_port, int(50));
-            connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
-
+            }
         }
     }
-}
 
 
-if (m_serinus55){
-    if (!m_serinus55->connected)
-    {
-        if ( (m_serinus_ip55 != "") && (m_serinus_port55 >0)){
+    if (m_serinus50){
+        if (!m_serinus50->connected)
+        {
+            if ( (m_serinus_ip50 != "") && (m_serinus_port50 >0)){
 
-            m_serinus55->~Serinus();
-            m_serinus55 = new Serinus(this, &m_serinus_ip55, &m_serinus_port55, int(55));
-            connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+                m_serinus50->~Serinus();
+                m_serinus50 = new Serinus(this, &m_serinus_ip, &m_serinus_port, int(50));
+                connect(m_serinus50, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
 
+            }
         }
     }
-}
+
+
+    if (m_serinus55){
+        if (!m_serinus55->connected)
+        {
+            if ( (m_serinus_ip55 != "") && (m_serinus_port55 >0)){
+
+                m_serinus55->~Serinus();
+                m_serinus55 = new Serinus(this, &m_serinus_ip55, &m_serinus_port55, int(55));
+                connect(m_serinus55, SIGNAL(dataIsReady(bool*, QMap<QString, float>*, QMap<QString, int>*)), this, SLOT(fillSensorData(bool*, QMap<QString, float>*, QMap<QString, int>*))); //fill several data to one sensor's base
+
+            }
+        }
+    }
     // if (!m_grimm->connected)
     // {
-if (m_grimm)
-    m_grimm->reOpen(&m_grimm_ip, &m_grimmport);
+    if (m_grimm)
+        m_grimm->reOpen(&m_grimm_ip, &m_grimmport);
     //- if ( (m_grimmport > 0) ){
 
     //  -   m_grimm->reOpen();
@@ -1227,73 +1246,73 @@ void processor::squeezeAlarmMsg()
 {
     QMap<QDateTime, QString>::iterator event_iterator;
     QMap<QDateTime, QString>::iterator event_code_iterator;
-if (m_fire){
-    if( (m_fire->surgardI->m_event->count() < 10))
-    {
-        if (m_fire->surgardI->m_event->count() > 1)
+    if (m_fire){
+        if( (m_fire->surgardI->m_event->count() < 10))
         {
-            //squeezing of the repeating sequence
-            event_code_iterator = m_fire->surgardI->m_event_code->begin();
-
-            while ( event_code_iterator != m_fire->surgardI->m_event_code->end())
-            { QString val = event_code_iterator.value();
-
-                event_code_iterator++;
-                if (event_code_iterator!=m_fire->surgardI->m_event_code->end())
-                {
-                    if (val == event_code_iterator.value())
-                    {
-                        m_fire->surgardI->m_event_code->remove(event_code_iterator.key());
-                        m_fire->surgardI->m_event->remove(event_code_iterator.key());
-                        event_code_iterator--;
-                    }
-                }
-            }
-
-            //pair "E" - "R" squeezing
-            event_code_iterator = m_fire->surgardI->m_event_code->begin();
-            while ( event_code_iterator != m_fire->surgardI->m_event_code->end())
+            if (m_fire->surgardI->m_event->count() > 1)
             {
-                if (event_code_iterator.value().left(1) == "E")
-                {
-                    QString str = event_code_iterator.value().mid(1, 3);
-                    bool flag = false;
+                //squeezing of the repeating sequence
+                event_code_iterator = m_fire->surgardI->m_event_code->begin();
 
-                    for (event_iterator = m_fire->surgardI->m_event_code->begin()+1; event_iterator != m_fire->surgardI->m_event_code->end(); ++event_iterator)
+                while ( event_code_iterator != m_fire->surgardI->m_event_code->end())
+                { QString val = event_code_iterator.value();
+
+                    event_code_iterator++;
+                    if (event_code_iterator!=m_fire->surgardI->m_event_code->end())
                     {
-                        if (event_iterator.value() == QString("R").append(str))
+                        if (val == event_code_iterator.value())
                         {
-                            m_fire->surgardI->m_event_code->remove(event_iterator.key()) ;
-                            m_fire->surgardI->m_event->remove(event_iterator.key());
-                            flag = true;
-                            break;
+                            m_fire->surgardI->m_event_code->remove(event_code_iterator.key());
+                            m_fire->surgardI->m_event->remove(event_code_iterator.key());
+                            event_code_iterator--;
                         }
                     }
-                    if (flag){
-                        m_fire->surgardI->m_event_code->remove(event_code_iterator.key());
-                        m_fire->surgardI->m_event->remove(event_code_iterator.key());
-                        event_code_iterator = m_fire->surgardI->m_event_code->begin();
+                }
 
-                    }
-                    else
+                //pair "E" - "R" squeezing
+                event_code_iterator = m_fire->surgardI->m_event_code->begin();
+                while ( event_code_iterator != m_fire->surgardI->m_event_code->end())
+                {
+                    if (event_code_iterator.value().left(1) == "E")
                     {
-                        event_code_iterator++;
+                        QString str = event_code_iterator.value().mid(1, 3);
+                        bool flag = false;
 
+                        for (event_iterator = m_fire->surgardI->m_event_code->begin()+1; event_iterator != m_fire->surgardI->m_event_code->end(); ++event_iterator)
+                        {
+                            if (event_iterator.value() == QString("R").append(str))
+                            {
+                                m_fire->surgardI->m_event_code->remove(event_iterator.key()) ;
+                                m_fire->surgardI->m_event->remove(event_iterator.key());
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag){
+                            m_fire->surgardI->m_event_code->remove(event_code_iterator.key());
+                            m_fire->surgardI->m_event->remove(event_code_iterator.key());
+                            event_code_iterator = m_fire->surgardI->m_event_code->begin();
+
+                        }
+                        else
+                        {
+                            event_code_iterator++;
+
+                        }
+                    } else{
+                        event_code_iterator++;
                     }
-                } else{
-                    event_code_iterator++;
                 }
             }
+
         }
+        else
+        {
 
+            m_fire->surgardI->m_event->clear();
+            m_fire->surgardI->m_event_code->clear();
+        }
     }
-    else
-    {
-
-        m_fire->surgardI->m_event->clear();
-        m_fire->surgardI->m_event_code->clear();
-    }
-}
 }
 void processor::transactionDB(void)
 {
@@ -1360,16 +1379,16 @@ void processor::transactionDB(void)
             }
         }
         query.finish();
-if (m_fire){
-        m_fire->surgardI->m_event->clear();
-        m_fire->surgardI->m_event_code->clear();
-}
+        if (m_fire){
+            m_fire->surgardI->m_event->clear();
+            m_fire->surgardI->m_event_code->clear();
+        }
     }
 
     //Meteo data processing
     if (m_meteo) {
         if (m_meteo->sample_t >0){
-             query.prepare("INSERT INTO meteo (station, date_time, bar, temp_in, hum_in, temp_out, hum_out, speed_wind, dir_wind, dew_pt, heat_indx, chill_wind, thsw_indx, rain, rain_rate, uv_indx, rad_solar, et) "
+            query.prepare("INSERT INTO meteo (station, date_time, bar, temp_in, hum_in, temp_out, hum_out, speed_wind, dir_wind, dew_pt, heat_indx, chill_wind, thsw_indx, rain, rain_rate, uv_indx, rad_solar, et) "
                           "VALUES (:station, :date_time, :bar, :temp_in, :hum_in, :temp_out, :hum_out, :speed_wind, :dir_wind, :dew_pt, :heat_indx, :chill_wind, :thsw_indx, :rain, :rain_rate, :uv_indx, :rad_solar, :et)");
 
             query.bindValue(":station", QString(m_uuidStation->toString()).remove(QRegExp("[\\{\\}]")));
@@ -1420,10 +1439,10 @@ if (m_fire){
             }
 
             query.finish();
-if (m_meteo){
-            m_meteo->measure->clear();
-            m_meteo->sample_t = 0;
-}
+            if (m_meteo){
+                m_meteo->measure->clear();
+                m_meteo->sample_t = 0;
+            }
         } else {
             query_log.bindValue(":date_time", tmp_time );
             query_log.bindValue( ":type", 404 );
@@ -1466,14 +1485,24 @@ if (m_meteo){
 
         if ((sensor.key() == "Пыль общая") || (sensor.key() == "PM1") || (sensor.key() == "PM2.5") || (sensor.key() == "PM4") || (sensor.key() == "PM10"))
         {
-            if(sensor.key() == "Пыль общая"){
-                val = ms_data->value("PM", -1); //Hardcoded for Cyrillic name of Dust total
-                _key = "PM";
+            if (m_grimm){//static array for Grimm
+                if(sensor.key() == "Пыль общая"){
+                    val = ms_data->value("PM", -1); //Hardcoded for Cyrillic name of Dust total
+                    _key = "PM";
+                } else {
+                    val = ms_data->value(sensor.key(), -1);
+                    _key = sensor.key();
+                }
+                is_static = true;
             } else {
-                val = ms_data->value(sensor.key(), -1);
-                _key = sensor.key();
+                if(sensor.key() == "Пыль общая"){
+                    val = m_data->value("PM", -1); //Hardcoded for Cyrillic name of Dust total
+                    _key = "PM";
+                } else {
+                    val = m_data->value(sensor.key(), -1);
+                    _key = sensor.key();
+                }
             }
-            is_static = true;
         } else {
 
             val = m_data->value(sensor.key(), -1);
@@ -1508,6 +1537,9 @@ if (m_meteo){
 
                     ms_data->remove(_key);
                     ms_measure->remove(_key);
+                } else {
+                    average = (float (val)) / m_measure->value(_key, 1) / m_range->value(_key, 1); //for dust measure range from static array
+                    _samples = m_measure->value(_key, 1);
                 }
 
             }
@@ -1628,23 +1660,23 @@ void processor::readSocketStatus()
     //  ui->tcpSettingsWidget->tcpConnect();
 
 
-// MODBUS ip
+    // MODBUS ip
     for (slave = m_pool->begin(); slave != m_pool->end(); ++slave)
     {
         tmp_type_measure.clear();
-m_modbusip->sendData(slave.key(), slave.value());
+        m_modbusip->sendData(slave.key(), slave.value());
 
-       }
+    }
 
 
 
     //Dust data reading
     if (m_dust){
         if (m_dust->connected){
-            m_dust->sendData( "@");
+            m_dust->sendData( "RMMEAS");
             //while (!m_dust->is_read);
             m_dust->is_read = false;
-            qDebug() << "count " << dust.length() <<"\n\r";
+            //qDebug() << "count " << dust.length() <<"\n\r";
 
             for (int i = 0; i < dust.length(); i++)
             {
@@ -1657,14 +1689,16 @@ m_modbusip->sendData(slave.key(), slave.value());
                     {
                         m_data->insert(tmp_type_measure, m_dust->measure->value(tmp_type_measure)); // insert into QMap ordering pair of measure first time
                         m_measure->insert(tmp_type_measure, 1);
-                        qDebug() << "measure... " << tmp_type_measure << " value = " << (float)m_dust->measure->value(tmp_type_measure)/m_range->value(tmp_type_measure) <<"\n\r";
+                        if(verbose)
+                            qDebug() << "measure... " << tmp_type_measure << " value = " << (float)m_dust->measure->value(tmp_type_measure)/m_range->value(tmp_type_measure) <<"\n\r";
                     }
                 } else {
                     if (m_dust->measure->value(tmp_type_measure) >0)
                     {
                         m_data->insert(tmp_type_measure, tmp + m_dust->measure->value(tmp_type_measure));
                         m_measure->insert(tmp_type_measure, m_measure->value(tmp_type_measure, 0) +1); //increment counter
-                        qDebug() << "measure... " << tmp_type_measure << " value = " << (float)m_dust->measure->value(tmp_type_measure)/m_range->value(tmp_type_measure) <<"\n\r";
+                        if(verbose)
+                            qDebug() << "measure... " << tmp_type_measure << " value = " << (float)m_dust->measure->value(tmp_type_measure)/m_range->value(tmp_type_measure) <<"\n\r";
                     }
                 }
             }
@@ -1696,15 +1730,15 @@ m_modbusip->sendData(slave.key(), slave.value());
                 m_measure->insert("Напряжение макс.", 1); //we don't interested in average voltage - we need lowest or highest values
 
             }
-if (m_ups) {
-            if (m_ups->voltage < m_data->value("Напряжение мин.")){
-                m_data->insert("Напряжение мин.", m_ups->voltage);
-            }
+            if (m_ups) {
+                if (m_ups->voltage < m_data->value("Напряжение мин.")){
+                    m_data->insert("Напряжение мин.", m_ups->voltage);
+                }
 
-            if (m_ups->voltage > m_data->value("Напряжение макс.")){
-                m_data->insert("Напряжение макс.", m_ups->voltage);
+                if (m_ups->voltage > m_data->value("Напряжение макс.")){
+                    m_data->insert("Напряжение макс.", m_ups->voltage);
+                }
             }
-}
         }
     }
     //Alarm data reading
@@ -1720,6 +1754,10 @@ if (m_ups) {
             ba[0] = 50; //primary gas response
             ba[1] = 51; //secondary gas response
             m_serinus->sendData(1, &ba);
+            if(verbose)
+
+                qDebug()<< "\n\rSerinus command: " << ba <<"\n\r" ;
+
 
         }
     }
@@ -1731,6 +1769,10 @@ if (m_ups) {
             ba[0] = 50; //primary gas response
             ba[1] = 51; //secondary gas response
             m_serinus50->sendData(1, &ba);
+            if(verbose)
+
+                qDebug()<< "\n\rSerinus50 command: " << ba <<"\n\r" ;
+
 
         }
     }
@@ -1742,6 +1784,10 @@ if (m_ups) {
             ba[0] = 50; //primary gas response
             ba[1] = 51; //secondary gas response
             m_serinus55->sendData(1, &ba);
+            if(verbose)
+
+                qDebug()<< "\n\rSerinus55 command: " << ba <<"\n\r" ;
+
 
         }
     }

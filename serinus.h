@@ -61,7 +61,8 @@ private:
 
 public:
     //enum _status {Idle, Waiting, Running};
-    int m_type = 51; //type of equipmets
+    int m_type = 51;
+    bool verbose = false;//type of equipmets
     enum _command {RDMN, MSTATUS, MSTART, MSTOP, RMMEAS};
     QString model;
     QString status;

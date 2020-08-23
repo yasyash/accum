@@ -94,7 +94,7 @@ Serinus::Serinus(QObject *parent , QString *ip, quint16 *port, int type) : QObje
     status = "";
     connected = m_sock->state();
 
-    qDebug() << "Serinus measure equipment handling has been initialized.\n\r";
+    qDebug() << "Serinus" << type <<" measure equipment handling has been initialized.\n\r";
 
 }
 
@@ -135,8 +135,8 @@ void Serinus::readData()
     QRegExp xRegExp("(-?\\d+(?:[\\.,]\\d+(?:e\\d+)?)?)");
 
     QByteArray _data = m_sock->readAll();
-
-    qDebug() << "Serinus buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
+    //if (verbose)
+     //   qDebug() << "Serinus buffer --- data: " << _data << " lenght - " << _data.length() << " \n\r";
 
     if (is_read)
     {switch (m_type) {
@@ -205,7 +205,7 @@ void Serinus::readData()
                     result = result * dec;
 
                 switch (m_type) {
-                        case 51:
+                case 51:
 
                     if (int(data[5*j + 5]) == 50){
                         if (result >= 0) { //negative value detection
@@ -231,49 +231,52 @@ void Serinus::readData()
                         }
                     }
 
-                            break;
+                    break;
 
-                        case 50:
-                       if (int(data[5*j + 5]) == 50){
-                    if (result >= 0) { //negative value detection
-                        sample_t->insert("SO2", sample_t->value("SO2") + 1);
-                        measure->insert("SO2",  measure->value("SO2") + result);
-                    }
-                    else
-                    {
-                        sample_t->insert("SO2", sample_t->value("SO2") + 1);
-                        measure->insert("SO2",  measure->value("SO2") + 0.000000001f);
-                    }}
-
-                            break;
-                        case 55:
-                       if (int(data[5*j + 5]) == 50){
-                    if (result >= 0) {//negative value detection
-                        sample_t->insert("H2S", sample_t->value("H2S") + 1);
-                        measure->insert("H2S", measure->value("H2S") + result);
-                    }
-                    else
-                    {
-                        sample_t->insert("H2S", sample_t->value("H2S") + 1);
-                        measure->insert("H2S", measure->value("H2S") + 0.000000001f);
-                    }}
-                       if (int(data[5*j + 5]) == 51){
-                       qDebug() << "Second gas = " << result ;
-                       }
-
-
-                            break;
-
-                        default:
-                            break;
-
+                case 50:
+                    if (int(data[5*j + 5]) == 50){
+                        if (result >= 0) { //negative value detection
+                            sample_t->insert("SO2", sample_t->value("SO2") + 1);
+                            measure->insert("SO2",  measure->value("SO2") + result);
                         }
+                        else
+                        {
+                            sample_t->insert("SO2", sample_t->value("SO2") + 1);
+                            measure->insert("SO2",  measure->value("SO2") + 0.000000001f);
+                        }}
+
+                    break;
+                case 55:
+                    if (int(data[5*j + 5]) == 50){
+                        if (result >= 0) {//negative value detection
+                            sample_t->insert("H2S", sample_t->value("H2S") + 1);
+                            measure->insert("H2S", measure->value("H2S") + result);
+                        }
+                        else
+                        {
+                            sample_t->insert("H2S", sample_t->value("H2S") + 1);
+                            measure->insert("H2S", measure->value("H2S") + 0.000000001f);
+                        }}
+                    //  if (int(data[5*j + 5]) == 51){
+                    //qDebug() << "Second gas = " << result ;
+                    //  }
+
+
+                    break;
+
+                default:
+                    break;
+
+                }
 
 
 
             }
             is_read = false;
-            qDebug() << "Serinus measure equipment data: " << data << " lenght - " << data.length() << " \n\r";
+
+            if (verbose)
+                qDebug() << "Serinus"<< m_type <<" measure equipment data: " << data << " lenght - " << data.length() << " \n\r";
+
             data.clear();
             emit dataIsReady(&is_read, measure, sample_t);
 
@@ -324,11 +327,12 @@ void Serinus::sendData(int command, QByteArray *data)
     lnt = m_sock->write(_msg.toLatin1(), lnt);
     lnt = m_sock->flush();
 
-    qDebug()<< "\n\rSerinus command: " << _msg <<"\n\r" ;
+    //qDebug()<< "\n\rSerinus command: " << _msg <<"\n\r" ;
 }
 
 void Serinus::writes()
 {
-    qDebug()<< "written " ;
+    if (verbose)
+        qDebug()<< "written " ;
 }
 #endif

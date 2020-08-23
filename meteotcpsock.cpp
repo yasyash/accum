@@ -20,7 +20,7 @@
 
 #include <QDebug>
 
-#ifdef DUSTTCP_H
+#ifdef METEOTCPSOCK_H
 MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port) : QObject (parent)
 
 {
@@ -74,7 +74,6 @@ MeteoTcpSock::MeteoTcpSock(QObject *parent , QString *ip, quint16 *port) : QObje
     qDebug() << "Meteostation handling has been initialized.\n\r";
 
 }
-#endif
 
 
 
@@ -417,3 +416,4 @@ float MeteoTcpSock::compare(float _in, float _prev)
     }
 
 }
+#endif
