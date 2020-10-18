@@ -89,11 +89,11 @@ ups_status::ups_status( QString *ip, quint16 *port, QString *ups_username)
 
     //  if (response)
     //     snmp_free_pdu(response);
-err_count = 3;
+    err_count = 3;
     vars = get_data((char*)"SNMPv2-MIB::sysLocation.0");
     if (vars){
         print_variable(vars->name, vars->val_len, vars);
-err_count--;
+        err_count--;
     }
     vars = get_data((char*)"DISMAN-EVENT-MIB::sysUpTimeInstance");
     if (vars){
@@ -107,18 +107,18 @@ err_count--;
         print_variable(vars->name, vars->val_len, vars);
         err_count--;
 
-}
+    }
     if (response)
         snmp_free_pdu(response);
 
     sample_t = 0;
     measure = new  QMap<QString, int>;
-if (err_count==0)
-    qDebug() << "UPS SNMP monitoring initialization complete."<< "\n\r";
-else {
-    qDebug() << "UPS SNMP monitoring initialization with issues.."<< "\n\r";
+    if (err_count==0)
+        qDebug() << "UPS SNMP monitoring initialization complete."<< "\n\r";
+    else {
+        qDebug() << "UPS SNMP monitoring initialization with issues.."<< "\n\r";
 
-}
+    }
 }
 
 ups_status::~ups_status()
@@ -162,7 +162,7 @@ variable_list * ups_status::get_data(char * mib)
     status = snmp_synch_response(ss, pdu, &response);
     //print_variable(response->variables->name, response->variables->val_len, response->variables);
 
-err_count++; //add hypotetic error
+    err_count++; //add hypotetic error
     if (status == STAT_SUCCESS){
         err_count--;
         return response->variables;

@@ -211,7 +211,7 @@ void ModbusIP::readData()
         }
         is_read = false;
     }
-   /* if (!is_read){
+   if (!is_read){
         if (sample_t->value("NO") <1 ){
             measure->insert("NO", 1);
             sample_t->insert("NO", 1);
@@ -233,7 +233,7 @@ void ModbusIP::readData()
             sample_t->insert("CO", 1);
         }
         emit dataIsReady(&is_read, measure, sample_t);
-    }*/
+    }
 }
 void ModbusIP::displayError(QAbstractSocket::SocketError socketError)
 {

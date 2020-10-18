@@ -166,13 +166,18 @@ void MeteoTcpSock::readData()
 
     _result =  ((float)((uchar(data[11])<<8) + (uchar(data[10])))/10-32)*5/9; //Fahrenheit TO Celsius Conversion Formula
 
-    if (((uchar(data[11])==0) && uchar(data[10]) == 0 && first_run) || ((uchar(data[11])==0x7f) && uchar(data[10]) == 0xff && first_run))
+    if (((uchar(data[11])==0) && (uchar(data[10]) == 0) && first_run) || ((uchar(data[11])==0x7f) && (uchar(data[10]) == 0xff) && first_run))
     {
         measure_prev->insert("temp_in",23.0f);
 
         measure->insert("temp_in", measure->value("temp_in") + 23.0f);
     } else
     {
+        if (_result < 0.0f)
+            _result = 9.999f;
+        if (_result > 50.0f)
+            _result = 23.999f;
+
         _result = compare (_result, measure_prev->value("temp_in"));
 
         measure_prev->insert("temp_in",_result);
@@ -206,6 +211,10 @@ void MeteoTcpSock::readData()
 
     } else
     {
+        if (_result < -65.0f)
+            _result = 9.999f;
+        if (_result > 50.0f)
+            _result = 23.999f;
         _result = compare (_result, measure_prev->value("temp_out"));
         measure_prev->insert("temp_out",_result);
         measure->insert("temp_out", measure->value("temp_out") + _result);
