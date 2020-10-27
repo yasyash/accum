@@ -30,6 +30,7 @@ class MeteoTcpSock : public QObject
 
 public:
     MeteoTcpSock(QObject *parent, QString *ip, quint16 *port);
+    MeteoTcpSock(QObject *parent, QString *ip, quint16 *port, float _in, float _out);
     virtual ~MeteoTcpSock();
     float compare(float _in, float _prev);
 

@@ -340,8 +340,24 @@ processor::processor(QObject *_parent,    QStringList *cmdline) : QObject (_pare
         }
         else
         {
-            m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port);
+            QSqlQuery *query= new QSqlQuery ("select * from sensors_data where typemeasure = 'Темп. внутренняя' order by date_time desc", *m_conn);
+            qDebug() << "Temp. inner status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
+            query->first();
+            QSqlRecord rec = query->record();
 
+            float temp_in = (rec.field("measure").value().toFloat());
+            query->finish();
+
+            QSqlQuery *queryout= new QSqlQuery ("select * from sensors_data where typemeasure = 'Темп. внешняя' order by date_time desc", *m_conn);
+            qDebug() << "Temp. inner status is " <<   query->isActive()<< " and err " << query->lastError().text() << "\n\r";
+            queryout->first();
+            rec = queryout->record();
+
+            float temp_out = (rec.field("measure").value().toFloat());
+            query->finish();
+
+
+            m_meteo = new MeteoTcpSock(this, &m_meteo_ip, &m_meteo_port, temp_in, temp_out);
         }
 
     }
@@ -1161,11 +1177,11 @@ void processor::renovateSlaveID( void )
 
     if (m_dust) {
         //if (!m_dust->connected){
-            if ( (m_dust_ip != "") && (m_dust_port >0)){
-                m_dust->~DustTcpSock();
-                m_dust = new DustTcpSock(this, &m_dust_ip, &m_dust_port);
-                m_dust->sendData( "MSTART"); //restart Dust measure equipment
-           // }
+        if ( (m_dust_ip != "") && (m_dust_port >0)){
+            m_dust->~DustTcpSock();
+            m_dust = new DustTcpSock(this, &m_dust_ip, &m_dust_port);
+            m_dust->sendData( "MSTART"); //restart Dust measure equipment
+            // }
         }
     }
     if (m_meteo) {
