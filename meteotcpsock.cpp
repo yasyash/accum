@@ -219,8 +219,8 @@ void MeteoTcpSock::readData()
         }
         if ((uchar(data[11])==0xff))
         {
-            _result = ((float)(   (int(data[10])))/10-32)*5/9;
-
+            int _raw =~((int)(255 - uchar(data[10]) ))+1;
+            _result = ((float)(_raw)/10-32)*5/9;
         }
         else {
             _result =  ((float)((uchar(data[11])<<8) + (uchar(data[10])))/10-32)*5/9; //Fahrenheit TO Celsius Conversion Formula
@@ -259,8 +259,8 @@ void MeteoTcpSock::readData()
         }
         if ((uchar(data[14])==0xff))
         {
-            _result = ((float)(   (int(data[13])))/10-32)*5/9;
-
+            int _raw =~((int)(255 - uchar(data[10]) ))+1;
+            _result = ((float)(_raw)/10-32)*5/9;
         }
         else {
 
@@ -480,7 +480,7 @@ void MeteoTcpSock::writes()
 float MeteoTcpSock::compare(float _in, float _prev)
 {
     if (!first_run ){
-        if (std::abs(_prev - _in) < (_prev*0.15f)) //new value don't exceed of 15% per sample
+        if (std::abs(_prev - _in) < std::abs(_prev*0.15f)) //new value don't exceed of 15% per sample
         {
             return _in;
         } else {
