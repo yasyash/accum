@@ -181,7 +181,7 @@ void MeteoTcpSock::readData()
     blockSize = 0;
     if ((uchar(data[1])==0x4c)) //write bytes detection
     {
-        if ((sample_t == 0) && (!first_run))
+       /* if ((sample_t == 0) && (!first_run))
         {
             measure->insert("bar", 0.0f);
             measure->insert("temp_in", 0.0f);
@@ -200,7 +200,7 @@ void MeteoTcpSock::readData()
             //measure->insert("rain_daily", 0);
             measure->insert("rain", 0.0f); //mm per hour
             measure->insert("et", 0.0f); //evaporotransportation in mm per day
-        }
+        }*/
 
         _result = ((float)(((uchar(data[9])<<8)+(uchar(data[8]))))/1000)*25.4f;//inchs Hg TO mm Hg Conversion Formula
         if ((uchar(data[9])==0) && uchar(data[8]) == 0 && first_run)
@@ -259,7 +259,7 @@ void MeteoTcpSock::readData()
         }
         if ((uchar(data[14])==0xff))
         {
-            int _raw =~((int)(255 - uchar(data[10]) ))+1;
+            int _raw =~((int)(255 - uchar(data[13]) ))+1;
             _result = ((float)(_raw)/10-32)*5/9;
         }
         else {
@@ -321,9 +321,9 @@ void MeteoTcpSock::readData()
 
         if (((uchar(data[32])==0) && uchar(data[31]) == 0 && first_run) || ((uchar(data[32])==0x7f) && uchar(data[31]) == 0xff && first_run))
         {
-            measure_prev->insert("dew_pt",measure->value("temp_out"));
+            measure_prev->insert("dew_pt",measure->value("dew_pt"));
 
-            measure->insert("dew_pt",  measure->value("dew_pt") + measure->value("temp_out"));
+            measure->insert("dew_pt",  measure->value("dew_pt") + measure->value("dew_pt"));
 
         } else
         {
