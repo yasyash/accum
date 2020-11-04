@@ -181,7 +181,7 @@ void MeteoTcpSock::readData()
     blockSize = 0;
     if ((uchar(data[1])==0x4c)) //write bytes detection
     {
-       /* if ((sample_t == 0) && (!first_run))
+        /*  if ((sample_t == 0) && (!first_run))
         {
             measure->insert("bar", 0.0f);
             measure->insert("temp_in", 0.0f);
@@ -229,14 +229,20 @@ void MeteoTcpSock::readData()
         {
             // measure_prev->insert("temp_in",23.0f);
 
-            measure->insert("temp_in", measure->value("temp_in")+_result);
-        } else
+            if (_result < 60) {
+                measure->insert("temp_in",  measure->value("temp_in") +_result);}
+            else
+            {
+                measure->insert("temp_in",  measure->value("temp_in") + measure_prev->value("temp_in"));
+            }
+        }
+        else
         {
             _result = compare (_result, measure_prev->value("temp_in"));
             if (_result < 0.0f)
-                _result = 0.0001f;
-            if (_result > 50.0f)
-                _result = 23.999f;
+                _result = measure_prev->value("temp_in");
+            if (_result > 60.0f)
+                _result = measure_prev->value("temp_in");
 
             measure_prev->insert("temp_in",_result);
 
@@ -272,7 +278,12 @@ void MeteoTcpSock::readData()
         if (((uchar(data[14])==0) && uchar(data[13]) == 0 && first_run) || ((uchar(data[14])==0x7f)  && first_run)|| ((uchar(data[14])==0xff)  && first_run))
         {
             // measure_prev->insert("temp_out",0.0f);
-            measure->insert("temp_out",  measure->value("temp_out") +_result);
+            if (_result < 50) {
+                measure->insert("temp_out",  measure->value("temp_out") +_result);}
+            else
+            {
+                measure->insert("temp_out",  measure->value("temp_out") + measure_prev->value("temp_out"));
+            }
             _absend = true;
 
         } else
@@ -280,9 +291,10 @@ void MeteoTcpSock::readData()
 
             _result = compare (_result, measure_prev->value("temp_out"));
             if (_result < -65.0f)
-                _result = -45.0f;
+                _result = measure_prev->value("temp_out");
+
             if (_result > 50.0f)
-                _result = 23.999f;
+                _result = measure_prev->value("temp_out");
             measure_prev->insert("temp_out",_result);
             measure->insert("temp_out", measure->value("temp_out") + _result);
         }
