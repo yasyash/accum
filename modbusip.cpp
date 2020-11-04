@@ -213,23 +213,23 @@ void ModbusIP::readData()
     }
    if (!is_read){
         if (sample_t->value("NO") <1 ){
-            measure->insert("NO", 1);
+            measure->insert("NO", 0);
             sample_t->insert("NO", 1);
         }
         if (sample_t->value("NO2") <1 ){
-            measure->insert("NO2", 1);
+            measure->insert("NO2", 0);
             sample_t->insert("NO2", 1);
         }
         if (sample_t->value("NH3") <1 ){
-            measure->insert("NH3", 1);
+            measure->insert("NH3", 0);
             sample_t->insert("NH3", 1);
         }
         if (sample_t->value("O3") <1 ){
-            measure->insert("O3", 1);
+            measure->insert("O3", 0);
             sample_t->insert("O3", 1);
         }
         if (sample_t->value("CO") <1 ){
-            measure->insert("CO", 1);
+            measure->insert("CO", 0);
             sample_t->insert("CO", 1);
         }
         emit dataIsReady(&is_read, measure, sample_t);
